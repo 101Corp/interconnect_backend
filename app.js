@@ -51,7 +51,7 @@ function saveSettings() {
 
   //const token = localStorage.getItem('chat_auth_token');
   //if (token) {
-    fetch('http://127.0.0.1:3000/auth/set-color', {
+    fetch('https://interconnect-backend-roxy.onrender.com/auth/set-color', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token:sessionStorage.getItem('chat_auth_token'), color })
@@ -119,7 +119,7 @@ function sendMessage() {
 
   createMessageElement(userMessage, true);
 
-  fetch('http://127.0.0.1:3000/send', {
+  fetch('https://interconnect-backend-roxy.onrender.com/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userMessage)
@@ -136,7 +136,7 @@ function deleteMessage(timestamp, element) {
   element.style.opacity = '0';
   setTimeout(() => element.remove(), 300);
 
-  fetch(`http://127.0.0.1:3000/delete/${timestamp}`, {
+  fetch(`https://interconnect-backend-roxy.onrender.com/delete/${timestamp}`, {
     method: 'DELETE'
   }).catch(() => {
     alert('Failed to delete message on server.');
@@ -171,7 +171,7 @@ function getPreviousUsername(messages, index) {
 }
 
 
-const evt = new EventSource('http://127.0.0.1:3000/events');
+const evt = new EventSource('https://interconnect-backend-roxy.onrender.com/events');
 evt.onmessage = event => {
   const msg = JSON.parse(event.data);
 
