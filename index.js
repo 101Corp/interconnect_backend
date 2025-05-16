@@ -4,7 +4,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
-const PORT = 3000;
+const PORT = 10000;
 const HOST = '0.0.0.0';
 const HISTORY_FILE = path.join(__dirname, 'chat_history.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
@@ -209,6 +209,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`📡 Server live at http://${HOST}:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`📡 Server live at ${PORT}`);
 });
