@@ -1,0 +1,19 @@
+{
+  "name": "GDPS",
+  "version": "1.0.0",
+  "description": "gdps",
+  "main": "index.js",
+  "repository": "https://github.com/101Corp/gdps/",
+  "author": "101Corp",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
