@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Local Chat with Settings & Delete</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button id="settings-button" title="Change Username & Color">⚙️ Settings</button>
+
+  <div id="message-container"></div>
+
+  <div id="input-box">
+    <input type="text" id="text-input" placeholder="Say something..." autocomplete="off" />
+    <button id="send-button">Send</button>
+  </div>
+
+  <!-- Modal for settings -->
+  <div id="settings-modal">
+    <div id="settings-content">
+      <h2>Chat Settings</h2>
+      <label for="username-input">Username:</label>
+      <input type="text" id="username-input" placeholder="Your glorious name" maxlength="20" />
+      
+      <label for="color-input">Color:</label>
+      <input type="color" id="color-input" value="#ffffff" />
+      
+      <button id="save-settings-button">Save Settings</button>
+      <button id="logout-button" title="Log Out">🚪 Logout</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login or Sign Up</title>
+  <style>
+    body {
+      background: #2c2f33;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #login-box {
+      background: #23272a;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+      width: 320px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      background: #40444b;
+      color: white;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background: #7289da;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background: #5b6eae;
+    }
+    #toggle-login {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #bbb;
+      cursor: pointer;
+      user-select: none;
+    }
+    #error-msg {
+      color: #ff5555;
+      min-height: 20px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="login-box">
+    <h2 id="form-title">Login</h2>
+    <div id="error-msg"></div>
+    <input type="text" id="username" placeholder="Username" maxlength="20" autocomplete="username" />
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+    <button id="submit-btn">Log In</button>
+    <div id="toggle-login">Don't have an account? Sign Up</div>
+  </div>
+
+ <script>
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const submitBtn = document.getElementById('submit-btn');
+  const toggleLogin = document.getElementById('toggle-login');
+  const errorMsg = document.getElementById('error-msg');
+  const formTitle = document.getElementById('form-title');
+
+  let isLogin = true; // toggle mode login/signup
+
+  
+
+  window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('logged_out')) {
+    console.log('User just logged out — clearing tokens');
+    localStorage.removeItem('chat_auth_token');
+    localStorage.removeItem('chat_username');
+
+    // Optionally remove the query so the message is one-time only
+    history.replaceState(null, '', window.location.pathname);
+  } else {
+     console.log(`[VERIFY]`);
+      (async () => {
+    const token = localStorage.getItem('chat_auth_token');
+    console.log(token);
+    if (token) {
+      try {
+        const res = await fetch('http://127.0.0.1:3000/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+        console.log(`[AUTH] Verified as ${data.username}`);
+        localStorage.setItem('chat_auth_token', token);
+        sessionStorage.setItem('chat_auth_token', token);
+        sessionStorage.setItem('chat_username', data.username);
+        sessionStorage.setItem('chat_color', data.color || '#ffffff');
+        console.log(`[AUTH] Color set to ${data.color}`);
+
+          window.location.href = 'chat.html';
+        } else {
+          localStorage.removeItem('chat_auth_token');
+        }
+      } catch (err) {
+        console.error('[AUTH] Verification error:', err);
+      }
+    }
+  })();
+  }
+});
+
+  toggleLogin.addEventListener('click', () => {
+    isLogin = !isLogin;
+    formTitle.textContent = isLogin ? 'Login' : 'Sign Up';
+    submitBtn.textContent = isLogin ? 'Log In' : 'Sign Up';
+    toggleLogin.textContent = isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Log In';
+    errorMsg.textContent = '';
+  });
+
+  async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    errorMsg.textContent = '';
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      errorMsg.textContent = 'Fill out both fields, please.';
+      return;
+    }
+
+    const hashedPass = await hashPassword(password);
+    const endpoint = isLogin ? '/auth/login' : '/auth/signup';
+
+    try {
+      const res = await fetch(`http://127.0.0.1:3000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: hashedPass })
+      });
+
+      const text = await res.text();
+
+      if (!res.ok) {
+        errorMsg.textContent = text || 'Something went wrong.';
+        return;
+      }
+
+      
+      const data = JSON.parse(text);
+      console.log(data)
+
+      if (data.token) {
+        localStorage.setItem('chat_auth_token', data.token);
+        sessionStorage.setItem('chat_auth_token', data.token);
+        sessionStorage.setItem('chat_username', username);
+        sessionStorage.setItem('chat_color', data.color || '#ffffff');
+
+        window.location.href = 'chat.html';
+      } else {
+        errorMsg.textContent = data.message || 'Unexpected response.';
+      }
+    } catch (err) {
+      errorMsg.textContent = 'Server unreachable.';
+      console.error('[ERROR] Fetch failed:', err);
+    }
+  });
+</script>
+
+</body>
+</html>
