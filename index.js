@@ -204,7 +204,7 @@ const server = http.createServer((req, res) => {
     });
 
   } else {
-    res.writeHead(404);
+    res.writeHead(200);
     res.end('Not found');
   }
 });
