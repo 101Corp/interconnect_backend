@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
 const pool = new Pool({
-  connectionString: postgresql://interconnected:RCq7ZzfWswAm7Xsf6mzyNv0geRgs13yc@dpg-d0jsvbbe5dus73b93100-a/interconnected,
+  connectionString: "postgresql://interconnected:RCq7ZzfWswAm7Xsf6mzyNv0geRgs13yc@dpg-d0jsvbbe5dus73b93100-a/interconnected",
   ssl: true ? { rejectUnauthorized: false } : false,
 });
 
