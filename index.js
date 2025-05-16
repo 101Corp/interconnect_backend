@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 const PORT = 3000;
-const HOST = '127.0.0.1';
+const HOST = '0.0.0.0';
 const HISTORY_FILE = path.join(__dirname, 'chat_history.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
 
