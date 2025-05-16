@@ -1,17 +1,17 @@
 {
-  "name": "GDPS",
+  "name": "interconnect",
   "version": "1.0.0",
-  "description": "gdps",
+  "description": "interconnect",
   "main": "index.js",
-  "repository": "https://github.com/101Corp/gdps/",
+  "repository": "https://github.com/101Corp/interconnect_backend/",
   "author": "101Corp",
-  "license": "MIT",
+  "license": "",
   "private": false,
   "scripts": {
     "start": "node index.js"
   },
-  "dependencies": {
-    "express": "^4.18.2"
+   "dependencies": {
+    "bcrypt": "^5.1.0"
   },
   "engines": {
     "node": ">=14"
