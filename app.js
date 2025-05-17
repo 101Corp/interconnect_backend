@@ -8,13 +8,17 @@ const colorInput = document.getElementById('color-input');
 const saveSettingsBtn = document.getElementById('save-settings-button');
 const pendingMessages = {};
 
+const channelEls = document.querySelectorAll('.channel');
+
 const savedName = sessionStorage.getItem('chat_username') || 'Anonymous';
 const savedColor = sessionStorage.getItem('chat_color') || '#ffffff';
 
 localStorage.setItem('chat_username', savedName);
 localStorage.setItem('chat_color', savedColor);
 
-let lastUsername = null; // Track last message's username
+let lastUsername = null;
+let evt = null;
+let currentChannel = 'general'; // default channel
 
 function openSettings() {
   const savedName = sessionStorage.getItem('chat_username') || 'Anonymous';
@@ -48,17 +52,23 @@ function saveSettings() {
   localStorage.setItem('chat_color', color);
 
   sessionStorage.setItem('chat_color', color);
+  const profilePicInput = document.getElementById('profile-pic-input');
+  const profilePic = profilePicInput.value.trim();
+  console.log(profilePic)
 
-  //const token = localStorage.getItem('chat_auth_token');
-  //if (token) {
-    fetch('https://interconnect-backend-roxy.onrender.com/auth/set-color', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token:sessionStorage.getItem('chat_auth_token'), color })
-    }).then(res => {
-      if (!res.ok) alert('Failed to update color on server.');
-    });
-  //}
+  sessionStorage.setItem('chat_profile_pic', profilePic);
+
+  fetch('https://interconnect-backend-roxy.onrender.com/auth/save_settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: sessionStorage.getItem('chat_auth_token'),
+      color,
+      pfp: profilePic,
+    })
+  }).then(res => {
+    if (!res.ok) alert('Failed to update settings on server.');
+  });
 
   closeSettings();
 }
@@ -76,21 +86,70 @@ function createMessageElement(msg, pending = false) {
   if (msg.tempId && pending) pendingMessages[msg.tempId] = div;
 
   if (msg.timestamp) div.dataset.timestamp = msg.timestamp;
+  console.log(lastUsername)
+  const showUserInfo = msg.username !== lastUsername;
+  if (!pending) lastMessageSender = msg.username;
 
-  // Only show username if it's different from last message
-  if (msg.username !== lastUsername) {
+  const userBlock = document.createElement('div');
+  userBlock.classList.add('message-user-block');
+
+  if (showUserInfo) {
+    lastUsername = msg.username;
+    const img = document.createElement('img');
+    img.src = msg.pfp || 'default_avatar.jpg';
+    img.alt = 'Profile';
+    img.classList.add('profile-pic');
+    userBlock.appendChild(img);
+  } else {
+    const spacer = document.createElement('div');
+    spacer.style.width = '32px';
+    userBlock.appendChild(spacer);
+  }
+
+  const contentBlock = document.createElement('div');
+  contentBlock.classList.add('message-content');
+
+
+  if (showUserInfo) {
+    const usernameRow = document.createElement('div');
+    usernameRow.classList.add('username-row');
+
     const userLabel = document.createElement('div');
     userLabel.classList.add('message-username');
     userLabel.textContent = msg.username || 'Anonymous';
     userLabel.style.color = msg.color || '#ffffff';
-    div.appendChild(userLabel);
-    lastUsername = msg.username;
+
+    usernameRow.appendChild(userLabel);
+    if (msg.timestamp) {
+      let timeString = 'Unknown time';
+      const timestampNum = Number(msg.timestamp);
+      if (!isNaN(timestampNum)) {
+        const date = new Date(timestampNum);
+        timeString = date.toLocaleString();
+      }
+      console.log(timeString)
+      const tsDiv = document.createElement('div');
+      tsDiv.classList.add('message-timestamp-inline');
+      tsDiv.textContent = timeString;
+
+      // Add the timestamp div *to* usernameRow (important)
+      usernameRow.appendChild(tsDiv);
+    }
+    contentBlock.appendChild(usernameRow);
   } else {
-    div.classList.add('same-user');
+    // No username shown, put timestamp to right of message text instead
+
   }
 
-  const textSpan = document.createElement('span');
-  textSpan.textContent = msg.text;
+
+
+  const textSpan = document.createElement('div');
+  textSpan.classList.add('message-text');
+  textSpan.textContent = msg.text || '';
+  contentBlock.appendChild(textSpan);
+
+  userBlock.appendChild(contentBlock);
+  div.appendChild(userBlock);
 
   const delBtn = document.createElement('button');
   delBtn.classList.add('delete-btn');
@@ -100,12 +159,23 @@ function createMessageElement(msg, pending = false) {
     deleteMessage(div.dataset.timestamp, div);
   });
 
-  div.appendChild(textSpan);
+  // Add wrapper to delBtn for alignment
+  const delWrapper = document.createElement('div');
+  delWrapper.classList.add('delete-wrapper');
+  delWrapper.appendChild(delBtn);
+
+  // Add special class if no user info shown to center the trashcan vertically
+  if (!showUserInfo) {
+    delWrapper.classList.add('center-trash');
+  }
+
   div.appendChild(delBtn);
 
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
+
+
 
 function sendMessage() {
   const text = input.value.trim();
@@ -115,7 +185,10 @@ function sendMessage() {
   const color = sessionStorage.getItem('chat_color') || '#ffffff';
 
   const tempId = Date.now().toString() + Math.random();
-  const userMessage = { text, username, color, tempId };
+  const profilePic = sessionStorage.getItem('chat_profile_pic') || '';
+  console.log(currentChannel)
+  const userMessage = { text, username, color, tempId, pfp: profilePic, channel: currentChannel, server: "gaming" };
+
 
   createMessageElement(userMessage, true);
 
@@ -161,7 +234,6 @@ modal.addEventListener('click', e => {
   if (e.target === modal) closeSettings();
 });
 
-
 function getPreviousUsername(messages, index) {
   for (let i = index - 1; i >= 0; i--) {
     const label = messages[i].querySelector('.message-username');
@@ -170,77 +242,110 @@ function getPreviousUsername(messages, index) {
   return null;
 }
 
+function subToChannel(channel) {
+  container.innerHTML = '';
+  lastUsername = null;
+  if (evt) evt.close();
+  evt = new EventSource(`https://interconnect-backend-roxy.onrender.com/events?channel=${encodeURIComponent(channel)}`);
+  evt.onmessage = event => {
+    const msg = JSON.parse(event.data);
 
-const evt = new EventSource('https://interconnect-backend-roxy.onrender.com/events');
-evt.onmessage = event => {
-  const msg = JSON.parse(event.data);
+    if (msg.delete) {
+      const allMessages = [...document.querySelectorAll('.message')];
+      const index = allMessages.findIndex(el => el.dataset.timestamp == msg.timestamp);
 
-if (msg.delete) {
-  const allMessages = [...document.querySelectorAll('.message')];
-  const index = allMessages.findIndex(el => el.dataset.timestamp == msg.timestamp);
+      if (index !== -1) {
+        const deletedEl = allMessages[index];
+        const deletedUserLabel = deletedEl.querySelector('.message-username');
 
-  if (index !== -1) {
-    const deletedEl = allMessages[index];
-    const deletedUserLabel = deletedEl.querySelector('.message-username');
+        if (deletedUserLabel) {
+          const deletedUsername = deletedUserLabel.textContent;
+          const deletedColor = deletedUserLabel.style.color;
 
-    // Only proceed if deleted message had a username label
-    if (deletedUserLabel) {
-      const deletedUsername = deletedUserLabel.textContent;
-      const deletedColor = deletedUserLabel.style.color;
+          deletedEl.style.opacity = '0';
+          setTimeout(() => deletedEl.remove(), 300);
 
-      // Remove the deleted message visually
-      deletedEl.style.opacity = '0';
-      setTimeout(() => deletedEl.remove(), 300);
+          let closest = null;
+          let minDistance = Infinity;
 
-      // Find the closest message from the same user
-      let closest = null;
-      let minDistance = Infinity;
+          allMessages.forEach((el, i) => {
+            if (i === index) return;
 
-      allMessages.forEach((el, i) => {
-        if (i === index) return;
+            let usernameLabel = el.querySelector('.message-username');
+            let username = usernameLabel
+              ? usernameLabel.textContent
+              : (el.classList.contains('same-user') ? getPreviousUsername(allMessages, i) : null);
 
-        // Try to get username label or infer username if it's a same-user message
-        let usernameLabel = el.querySelector('.message-username');
-        let username = usernameLabel
-          ? usernameLabel.textContent
-          : (el.classList.contains('same-user') ? getPreviousUsername(allMessages, i) : null);
+            if (username === deletedUsername) {
+              const dist = Math.abs(i - index);
+              if (dist < minDistance) {
+                closest = el;
+                minDistance = dist;
+              }
+            }
+          });
 
-        if (username === deletedUsername) {
-          const dist = Math.abs(i - index);
-          if (dist < minDistance) {
-            closest = el;
-            minDistance = dist;
+          if (closest) {
+            const hasLabel = closest.querySelector('.message-username');
+            if (!hasLabel) {
+              const clonedLabel = deletedUserLabel.cloneNode(true);
+              closest.insertBefore(clonedLabel, closest.firstChild);
+              closest.classList.remove('same-user');
+            }
+          } else {
+            const next = allMessages[index - 1];
+            if (!next || !next.classList.contains('same-user')) {
+              lastUsername = null;
+            }
           }
-        }
-      });
-
-      // Add a username label above closest message if it doesn't have one
-      if (closest) {
-        const hasLabel = closest.querySelector('.message-username');
-        if (!hasLabel) {
-          // Clone the deleted message's username label
-          const clonedLabel = deletedUserLabel.cloneNode(true);
-          closest.insertBefore(clonedLabel, closest.firstChild);
-          closest.classList.remove('same-user');
+        } else {
+          deletedEl.style.opacity = '0';
+          setTimeout(() => deletedEl.remove(), 300);
         }
       }
-    } else {
-      // If deleted message had no username label, just remove it
-      deletedEl.style.opacity = '0';
-      setTimeout(() => deletedEl.remove(), 300);
+      return;
     }
-  }
-  return;
+
+    if (msg.tempId && pendingMessages[msg.tempId]) {
+      const el = pendingMessages[msg.tempId];
+      el.classList.remove('pending');
+      el.dataset.timestamp = msg.timestamp;
+      delete pendingMessages[msg.tempId];
+    } else if (msg.channel === currentChannel)  {
+      createMessageElement(msg);
+    }
+  };
+
+}
+
+// UI: Highlight the selected channel
+function highlightActiveChannel(channel) {
+  const cleanChannel = channel.replace(/^#?\s*/, '').trim();
+
+  channelEls.forEach(el => {
+    const elChannel = el.textContent.replace(/^#?\s*/, '').trim();
+    if (elChannel === cleanChannel) {
+      el.classList.add('active-channel');
+    } else {
+      el.classList.remove('active-channel');
+    }
+  });
 }
 
 
+// Bind events
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMessage();
+});
 
-  if (msg.tempId && pendingMessages[msg.tempId]) {
-    const el = pendingMessages[msg.tempId];
-    el.classList.remove('pending');
-    el.dataset.timestamp = msg.timestamp;
-    delete pendingMessages[msg.tempId];
-  } else {
-    createMessageElement(msg);
-  }
-};
+channelEls.forEach(el => {
+  el.addEventListener('click', () => {
+    currentChannel = el.textContent.replace(/^#?\s*/, '').trim();
+    highlightActiveChannel(currentChannel)
+    subToChannel(currentChannel);
+  });
+});
+
+subToChannel(currentChannel)
+highlightActiveChannel(currentChannel)
