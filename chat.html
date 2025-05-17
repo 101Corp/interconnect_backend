@@ -94,7 +94,7 @@
 
     async function loadChannels(server) {
       try {
-        const res = await fetch(`http://localhost:3000/server/${encodeURIComponent(server)}/channels`);
+        const res = await fetch(`https://interconnect-backend-roxy.onrender.com/server/${encodeURIComponent(server)}/channels`);
         if (!res.ok) throw new Error(await res.text());
 
         const data = await res.json(); // This actually gives you the { channels: [...] }
@@ -109,7 +109,7 @@
 
     async function createChannel(name, server) {
       try {
-        const res = await fetch('http://localhost:3000/create_channel', {
+        const res = await fetch('https://interconnect-backend-roxy.onrender.com/create_channel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, server })
