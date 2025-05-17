@@ -9,6 +9,96 @@ body {
   position: relative;
 }
 
+/* Discord-style server panel */
+#server-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 100vh;
+  background-color: #202225;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.server-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #36393f;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.server-icon:hover {
+  background-color: #5865f2;
+}
+
+/* Adjust layout for main content */
+#message-container,
+#input-box,
+#settings-button {
+  margin-left: 280px; /* was probably 70px, now it's 70 + 200 + some buffer */
+}
+
+
+/* Channel panel */
+#channel-panel {
+  position: fixed;
+  top: 0;
+  left: 70px; /* sits to the right of the server panel */
+  width: 200px;
+  height: 100vh;
+  background-color: #2f3136;
+  color: #ccc;
+  padding-top: 10px;
+  padding-left: 10px;
+  font-family: sans-serif;
+  z-index: 900;
+  overflow-y: auto;
+}
+
+.channel-section {
+  margin-bottom: 20px;
+}
+
+.channel-section-title {
+  font-weight: bold;
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.channel.active-channel {
+  background-color: #31343c;
+  color: #fff;
+  font-weight: bold;
+}
+
+
+.channel {
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.channel:hover {
+  background-color: #40444b;
+  color: white;
+}
+
+
+
 #message-container {
   flex: 1;
   overflow-y: auto;
@@ -36,6 +126,45 @@ body {
 .message.same-user {
   padding: 2px 12px;
  margin-bottom: 2px;
+}
+
+.message-user-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.message-username {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.message-text {
+  white-space: pre-wrap;
+}
+
+
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;  /* maintains aspect ratio, fills box */
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* Hover effect: glow with subtle background */
@@ -194,7 +323,42 @@ body {
   user-select: none;
 }
 
+.username-row {
+  display: flex;
+  align-items: center;  /* vertical align */
+  gap: 8px;             /* space between username and timestamp */
+  /* Optional: prevent wrapping */
+  flex-wrap: nowrap;
+}
+
+
+.message-timestamp, .message-timestamp-inline {
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.4); /* ghostly pale */
+  white-space: nowrap;
+}
+
+.message-timestamp-inline {
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  /* remove inline-block because flex children are block by default */
+  /* optionally add: */
+  flex-shrink: 0;  /* so timestamp doesn’t shrink if container is tight */
+}
+
+
+
 /* Delete button */
+.delete-wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.delete-wrapper.center-trash {
+  align-items: center; /* vertical center when no user info */
+}
+
 .delete-btn {
   position: absolute;
   right: 6px;
@@ -207,6 +371,8 @@ body {
   outline: none;
   transition: color 0.3s;
 }
+
+
 
 .delete-btn:hover {
   color: #ff5555;
