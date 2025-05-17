@@ -1,5 +1,7 @@
 body {
-  font-family: sans-serif;
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-style: normal;
   background-color: #2c2f33;
   margin: 0;
   padding: 0;
@@ -7,6 +9,18 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+.poetsen-one-regular {
+  font-family: "Poetsen One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.fatass-regular {
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /* Discord-style server panel */
@@ -47,7 +61,8 @@ body {
 #message-container,
 #input-box,
 #settings-button {
-  margin-left: 280px; /* was probably 70px, now it's 70 + 200 + some buffer */
+  margin-left: 280px;
+  /* was probably 70px, now it's 70 + 200 + some buffer */
 }
 
 
@@ -55,7 +70,8 @@ body {
 #channel-panel {
   position: fixed;
   top: 0;
-  left: 70px; /* sits to the right of the server panel */
+  left: 70px;
+  /* sits to the right of the server panel */
   width: 200px;
   height: 100vh;
   background-color: #2f3136;
@@ -108,7 +124,8 @@ body {
 
 .message {
   margin-bottom: 0px;
-  background-color: transparent; /* start fully seamless */
+  background-color: transparent;
+  /* start fully seamless */
   padding: 2px 12px;
   border-radius: 8px;
   max-width: 70%;
@@ -125,7 +142,7 @@ body {
 
 .message.same-user {
   padding: 2px 12px;
- margin-bottom: 2px;
+  margin-bottom: 2px;
 }
 
 .message-user-block {
@@ -162,7 +179,8 @@ body {
 .profile-pic {
   width: 32px;
   height: 32px;
-  object-fit: cover;  /* maintains aspect ratio, fills box */
+  object-fit: cover;
+  /* maintains aspect ratio, fills box */
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -202,6 +220,7 @@ body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
+
 #send-button:hover {
   background-color: #5b6eae;
 }
@@ -221,6 +240,7 @@ body {
   z-index: 1001;
   transition: background-color 0.3s;
 }
+
 #settings-button:hover {
   background-color: #5b6eae;
 }
@@ -240,16 +260,21 @@ body {
   z-index: 1001;
   transition: background-color 0.3s;
 }
+
 #logout-button:hover {
   background-color: #5b6eae;
 }
 
 /* Modal overlay */
 #settings-modal {
-  display: none; /* hidden by default */
+  display: none;
+  /* hidden by default */
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(2px);
   z-index: 1000;
   display: flex;
@@ -264,7 +289,7 @@ body {
   padding: 20px 30px;
   border-radius: 10px;
   min-width: 320px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.6);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
 }
 
 #settings-content h2 {
@@ -311,6 +336,7 @@ body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
+
 #settings-content button:hover {
   background-color: #5b6eae;
 }
@@ -325,16 +351,20 @@ body {
 
 .username-row {
   display: flex;
-  align-items: center;  /* vertical align */
-  gap: 8px;             /* space between username and timestamp */
+  align-items: center;
+  /* vertical align */
+  gap: 8px;
+  /* space between username and timestamp */
   /* Optional: prevent wrapping */
   flex-wrap: nowrap;
 }
 
 
-.message-timestamp, .message-timestamp-inline {
+.message-timestamp,
+.message-timestamp-inline {
   font-size: 0.75em;
-  color: rgba(255, 255, 255, 0.4); /* ghostly pale */
+  color: rgba(255, 255, 255, 0.4);
+  /* ghostly pale */
   white-space: nowrap;
 }
 
@@ -344,7 +374,8 @@ body {
   white-space: nowrap;
   /* remove inline-block because flex children are block by default */
   /* optionally add: */
-  flex-shrink: 0;  /* so timestamp doesn’t shrink if container is tight */
+  flex-shrink: 0;
+  /* so timestamp doesn’t shrink if container is tight */
 }
 
 
@@ -356,7 +387,8 @@ body {
 }
 
 .delete-wrapper.center-trash {
-  align-items: center; /* vertical center when no user info */
+  align-items: center;
+  /* vertical center when no user info */
 }
 
 .delete-btn {
