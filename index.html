@@ -144,7 +144,7 @@
           console.log(token);
           if (token) {
             try {
-              const res = await fetch('http://127.0.0.1:3000/auth/verify', {
+              const res = await fetch('https://interconnect-backend-roxy.onrender.com/auth/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
