@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Global Chat - Interspeak: Talk with anyone, anywhere!</title>
+  <title>World Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+
+  <div id="server-panel">
+    <div class="server-icon" title="General">🌐</div>
+    <div class="server-icon" title="Gaming">🎮</div>
+    <div class="server-icon" title="Memes">😂</div>
+    <div class="server-icon" title="Music">🎵</div>
+    <div class="server-icon" title="Add Server">➕</div>
+  </div>
+
+  <div id="channel-panel">
+    <div class="channel-section" id="channel-list">
+      <div class="channel-section-title">Channels</div>
+      <div class="channel" data-channel="general"># general</div>
+    </div>
+    <button id="add-channel-button" title="Add New Channel">➕ Add Channel</button>
+  </div>
+
   <button id="settings-button" title="Change Username & Color">⚙️ Settings</button>
 
   <div id="message-container"></div>
@@ -21,15 +40,102 @@
       <h2>Chat Settings</h2>
       <label for="username-input">Username:</label>
       <input type="text" id="username-input" placeholder="Your glorious name" maxlength="20" />
-      
+
       <label for="color-input">Color:</label>
       <input type="color" id="color-input" value="#ffffff" />
-      
+
+      <label for="profile-pic-input">Profile Picture URL:</label>
+      <input type="text" id="profile-pic-input" placeholder="https://example.com/me.png">
+
       <button id="save-settings-button">Save Settings</button>
       <button id="logout-button" title="Log Out">🚪 Logout</button>
     </div>
   </div>
 
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const server = 'main';
+      loadChannels(server);
+    });
+
+    function clearChannels() {
+      const list = document.getElementById('channel-list');
+      const title = list.querySelector('.channel-section-title');
+
+      // Remove everything except the title
+      list.innerHTML = '';
+      list.appendChild(title);
+    }
+
+
+    function renderChannelList(channels) {
+      const channelList = document.getElementById('channel-list');
+      clearChannels()
+      channels.forEach(name => {
+
+        const channel = document.createElement('div');
+        channel.className = 'channel';
+        channel.dataset.channel = name;
+        channel.textContent = `# ${name}`;
+        channel.addEventListener('click', () => {
+          currentChannel = name;
+          highlightActiveChannel(currentChannel);
+          subToChannel(currentChannel);
+        });
+        channelList.appendChild(channel);
+      });
+    }
+
+
+    async function loadChannels(server) {
+      try {
+        const res = await fetch(`https://interconnect-backend-roxy.onrender.com/server/${encodeURIComponent(server)}/channels`);
+        if (!res.ok) throw new Error(await res.text());
+
+        const data = await res.json(); // This actually gives you the { channels: [...] }
+        console.log(data.channels, "2"); // Correct place to log the response body
+
+        renderChannelList(data.channels); // Assuming this exists
+      } catch (err) {
+        console.error(`Error loading channels for server ${server}:`, err);
+      }
+    }
+
+
+    async function createChannel(name, server) {
+      try {
+        const res = await fetch('https://interconnect-backend-roxy.onrender.com/create_channel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, server })
+        });
+
+        if (!res.ok) {
+          throw new Error(await res.text());
+        }
+
+        console.log(`[CHANNEL] Created ${name} in server ${server}`);
+        await loadChannels(server); // Refresh channel list
+      } catch (err) {
+        console.error('Failed to create channel:', err);
+      }
+    }
+
+
+    const channelList = document.getElementById('channel-list');
+    const addChannelBtn = document.getElementById('add-channel-button');
+
+    addChannelBtn.addEventListener('click', () => {
+      const name = prompt("Enter new channel name (no spaces):");
+      if (!name || name.includes(' ')) {
+        alert("Invalid channel name.");
+        return;
+      }
+      createChannel(name,'main')
+    });
+  </script>
+
   <script src="app.js"></script>
 </body>
+
 </html>
