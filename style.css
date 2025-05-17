@@ -126,9 +126,10 @@ body {
   margin-bottom: 0px;
   background-color: transparent;
   /* start fully seamless */
-  padding: 2px 12px;
+  font-size: 16px;
+  padding: 0px 12px;
   border-radius: 8px;
-  max-width: 70%;
+  max-width: 50%;
   opacity: 1;
   transition: background-color 0.3s, box-shadow 0.3s, opacity 0.3s;
   word-break: break-word;
@@ -141,8 +142,8 @@ body {
 }
 
 .message.same-user {
-  padding: 2px 12px;
-  margin-bottom: 2px;
+  padding: 0px 12px;
+  margin-bottom: 0px;
 }
 
 .message-user-block {
