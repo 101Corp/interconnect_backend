@@ -202,7 +202,7 @@
       const endpoint = isLogin ? '/auth/login' : '/auth/signup';
 
       try {
-        const res = await fetch(`http://127.0.0.1:3000${endpoint}`, {
+        const res = await fetch(`https://interconnect-backend-roxy.onrender.com${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password: hashedPass })
