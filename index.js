@@ -62,6 +62,9 @@ const server = http.createServer(async (req, res) => {
         await pool.query('INSERT INTO users (username, password, color, pfp) VALUES ($1, $2, $3, $4)', [username, hashed, '#ffffff', "default_avatar.jpg"]);
         const token = generateToken();
         sessions[token] = username;
+        console.log('[SESSION] Created session for', username, 'with token', token);
+        console.log('[SESSIONS]', sessions);
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ token }));
       } catch (err) {
@@ -85,6 +88,9 @@ const server = http.createServer(async (req, res) => {
         }
         const token = generateToken();
         sessions[token] = username;
+        console.log('[SESSION] Created session for', username, 'with token', token);
+        console.log('[SESSIONS]', sessions);
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ token, color: result.rows[0].color, pfp: result.rows[0].pfp }));
       } catch (err) {
