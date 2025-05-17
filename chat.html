@@ -3,11 +3,16 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>World Chat</title>
+  <title>Interspeak - Chat</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+
 </head>
 
-<body>
+<body class="fatass-regular">
 
   <div id="server-panel">
     <div class="server-icon" title="General">🌐</div>
@@ -89,7 +94,7 @@
 
     async function loadChannels(server) {
       try {
-        const res = await fetch(`https://interconnect-backend-roxy.onrender.com/server/${encodeURIComponent(server)}/channels`);
+        const res = await fetch(`http://localhost:3000/server/${encodeURIComponent(server)}/channels`);
         if (!res.ok) throw new Error(await res.text());
 
         const data = await res.json(); // This actually gives you the { channels: [...] }
@@ -104,7 +109,7 @@
 
     async function createChannel(name, server) {
       try {
-        const res = await fetch('https://interconnect-backend-roxy.onrender.com/create_channel', {
+        const res = await fetch('http://localhost:3000/create_channel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, server })
@@ -131,7 +136,7 @@
         alert("Invalid channel name.");
         return;
       }
-      createChannel(name,'main')
+      createChannel(name, 'main')
     });
   </script>
 
