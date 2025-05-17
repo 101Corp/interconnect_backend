@@ -256,7 +256,7 @@ const server = http.createServer(async (req, res) => {
         res.end('Internal server error');
       }
     });
-   } else if (req.url === '/status' && req.method === 'POST') {
+   } else if (req.url === '/status') {
         res.writeHead(200);
         res.end('OK');
    } else {
