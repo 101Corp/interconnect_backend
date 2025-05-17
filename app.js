@@ -58,7 +58,7 @@ function saveSettings() {
 
   sessionStorage.setItem('chat_profile_pic', profilePic);
 
-  fetch('https://lava-instinctive-snipe.glitch.me/auth/save_settings', {
+  fetch('https://interconnect-backend-roxy.onrender.com/auth/save_settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -192,7 +192,7 @@ function sendMessage() {
 
   createMessageElement(userMessage, true);
 
-  fetch('https://lava-instinctive-snipe.glitch.me/send', {
+  fetch('https://interconnect-backend-roxy.onrender.com/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userMessage)
@@ -209,7 +209,7 @@ function deleteMessage(timestamp, element) {
   element.style.opacity = '0';
   setTimeout(() => element.remove(), 300);
 
-  fetch(`https://lava-instinctive-snipe.glitch.me/delete/${timestamp}`, {
+  fetch(`https://interconnect-backend-roxy.onrender.com/delete/${timestamp}`, {
     method: 'DELETE'
   }).catch(() => {
     alert('Failed to delete message on server.');
@@ -246,7 +246,7 @@ function subToChannel(channel) {
   container.innerHTML = '';
   lastUsername = null;
   if (evt) evt.close();
-  evt = new EventSource(`https://lava-instinctive-snipe.glitch.me/events?channel=${encodeURIComponent(channel)}`);
+  evt = new EventSource(`https://interconnect-backend-roxy.onrender.com/events?channel=${encodeURIComponent(channel)}`);
   evt.onmessage = event => {
     const msg = JSON.parse(event.data);
 
