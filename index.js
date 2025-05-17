@@ -121,6 +121,9 @@ const server = http.createServer(async (req, res) => {
       const { token, color, pfp } = JSON.parse(body);
       console.log("1", pfp)
       const username = sessions[token];
+console.log('Incoming token:', token);
+console.log('Known sessions:', sessions);
+
       if (!username) {
         res.writeHead(401);
         return res.end('Unauthorized');
