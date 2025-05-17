@@ -101,7 +101,7 @@
     console.log(token);
     if (token) {
       try {
-        const res = await fetch('https://lava-instinctive-snipe.glitch.me/auth/verify', {
+        const res = await fetch('https://interconnect-backend-roxy.onrender.com/auth/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token })
@@ -159,7 +159,7 @@
     const endpoint = isLogin ? '/auth/login' : '/auth/signup';
 
     try {
-      const res = await fetch(`https://lava-instinctive-snipe.glitch.me${endpoint}`, {
+      const res = await fetch(`https://interconnect-backend-roxy.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password: hashedPass })
