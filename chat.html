@@ -10,6 +10,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
 
+  <style>
+    #channel-server-header {
+      font-family: 'Poetsen One', cursive;
+      font-size: 3rem;
+      font-weight: 700;
+      padding: 20px;
+      text-align: center;
+      background: #222;
+      color: #0ff;
+      user-select: none;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 
 <body class="fatass-regular">
@@ -31,6 +44,27 @@
   </div>
 
   <button id="settings-button" title="Change Username & Color">⚙️ Settings</button>
+
+  <!-- BIG MASSIVE HEADER SHOWING CURRENT CHANNEL & SERVER -->
+  <!-- Replace the previous big header div with this: -->
+<div id="channel-server-header" style="
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 0;
+  margin: 0 0 4px 350px;  /* margin-left: width of channel panel */
+  color: #7b7b7b;
+  user-select: none;
+  text-align: left;
+  background: transparent;
+  border: none;
+  outline: none;
+">
+  #general - main
+</div>
+
+
+
 
   <div id="message-container"></div>
 
@@ -58,87 +92,194 @@
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const server = 'main';
-      loadChannels(server);
-    });
+  let isLogin = true; // toggle mode login/signup
+  let hostname = 'https://interconnect-backend-roxy.onrender.com'; // Default backend
+  let server = 'main'; // Default logical server name
+  let currentChannel = 'general'; // Default channel
 
-    function clearChannels() {
-      const list = document.getElementById('channel-list');
-      const title = list.querySelector('.channel-section-title');
+  const channelListEl = document.getElementById('channel-list');
 
-      // Remove everything except the title
-      list.innerHTML = '';
-      list.appendChild(title);
-    }
+  window.addEventListener('DOMContentLoaded', () => {
+    setupServerSwitching();
+    loadChannels(server);
+    updateChannelServerHeader(currentChannel, server);
+    highlightActiveChannel(currentChannel);
+  });
 
+  function updateChannelServerHeader(channel, serverName) {
+    const header = document.getElementById('channel-server-header');
+    header.textContent = `#${channel} - ${serverName}`;
+  }
 
-    function renderChannelList(channels) {
-      const channelList = document.getElementById('channel-list');
-      clearChannels()
-      channels.forEach(name => {
+  function clearChannels() {
+    const title = channelListEl.querySelector('.channel-section-title');
+    channelListEl.innerHTML = '';
+    channelListEl.appendChild(title);
+  }
 
-        const channel = document.createElement('div');
-        channel.className = 'channel';
-        channel.dataset.channel = name;
-        channel.textContent = `# ${name}`;
-        channel.addEventListener('click', () => {
-          currentChannel = name;
-          highlightActiveChannel(currentChannel);
-          subToChannel(currentChannel);
-        });
-        channelList.appendChild(channel);
+  function renderChannelList(channels) {
+    clearChannels();
+    channels.forEach(name => {
+      const channel = document.createElement('div');
+      channel.className = 'channel';
+      channel.dataset.channel = name;
+      channel.textContent = `# ${name}`;
+      channel.addEventListener('click', () => {
+        if (currentChannel === name) return; // no re-subscribe if same channel
+        currentChannel = name;
+        highlightActiveChannel(currentChannel);
+        updateChannelServerHeader(currentChannel, server);
+        subToChannel(currentChannel);
       });
-    }
-
-
-    async function loadChannels(server) {
-      try {
-        const res = await fetch(`https://interconnect-backend-roxy.onrender.com/server/${encodeURIComponent(server)}/channels`);
-        if (!res.ok) throw new Error(await res.text());
-
-        const data = await res.json(); // This actually gives you the { channels: [...] }
-        console.log(data.channels, "2"); // Correct place to log the response body
-
-        renderChannelList(data.channels); // Assuming this exists
-      } catch (err) {
-        console.error(`Error loading channels for server ${server}:`, err);
-      }
-    }
-
-
-    async function createChannel(name, server) {
-      try {
-        const res = await fetch('https://interconnect-backend-roxy.onrender.com/create_channel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, server })
-        });
-
-        if (!res.ok) {
-          throw new Error(await res.text());
-        }
-
-        console.log(`[CHANNEL] Created ${name} in server ${server}`);
-        await loadChannels(server); // Refresh channel list
-      } catch (err) {
-        console.error('Failed to create channel:', err);
-      }
-    }
-
-
-    const channelList = document.getElementById('channel-list');
-    const addChannelBtn = document.getElementById('add-channel-button');
-
-    addChannelBtn.addEventListener('click', () => {
-      const name = prompt("Enter new channel name (no spaces):");
-      if (!name || name.includes(' ')) {
-        alert("Invalid channel name.");
-        return;
-      }
-      createChannel(name, 'main')
+      channelListEl.appendChild(channel);
     });
-  </script>
+  }
+
+  async function loadChannels(serverName) {
+    try {
+      const res = await fetch(`${hostname}/server/${encodeURIComponent(serverName)}/channels`);
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      renderChannelList(data.channels);
+
+      // Auto-subscribe to first channel or 'general' if currentChannel invalid
+      if (!data.channels.includes(currentChannel)) {
+        currentChannel = data.channels[0] || 'general';
+        updateChannelServerHeader(currentChannel, serverName);
+        highlightActiveChannel(currentChannel);
+        subToChannel(currentChannel);
+      }
+    } catch (err) {
+      console.error(`Error loading channels for server ${serverName}:`, err);
+    }
+  }
+
+  async function createChannel(name, serverName) {
+    try {
+      const res = await fetch(`${hostname}/create_channel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, server: serverName })
+      });
+      if (!res.ok) throw new Error(await res.text());
+
+      console.log(`[CHANNEL] Created ${name} in server ${serverName}`);
+      await loadChannels(serverName);
+    } catch (err) {
+      console.error('Failed to create channel:', err);
+    }
+  }
+
+  async function delayedHighlight(channel) {
+  await new Promise(resolve => setTimeout(resolve, 50)); // 0.05s delay
+  highlightActiveChannel(channel);
+}
+
+
+  function setupServerSwitching() {
+    const serverIcons = document.querySelectorAll('#server-panel .server-icon');
+
+    // Logical server names in same order as icons
+    const serverConfigs = ['main', 'gaming', 'memes', 'music'];
+
+    serverIcons.forEach((icon, index) => {
+      if (index >= serverConfigs.length) return;
+
+      icon.addEventListener('click', () => {
+        const newServer = serverConfigs[index];
+        if (server === newServer) return; // no reload if same server
+
+        server = newServer;
+        console.log(`[SERVER SWITCH] Logical: ${server}`);
+
+        // Clear messages on server switch and reset lastUsername if needed
+        container.innerHTML = '';
+        lastUsername = null;
+
+        loadChannels(server);
+        updateChannelServerHeader(currentChannel, server);
+        subToChannel(currentChannel);
+        delayedHighlight(currentChannel);
+      });
+    });
+  }
+
+
+ 
+  // Minimal createMessageElement to display chat messages inside container (expand as needed)
+  function createMessageElement(msg) {
+    const div = document.createElement('div');
+    div.classList.add('message');
+    div.dataset.timestamp = msg.timestamp || '';
+
+    // Show username only if different from last message
+    const showUserInfo = msg.username !== lastUsername;
+    if (showUserInfo) lastUsername = msg.username;
+
+    const userBlock = document.createElement('div');
+    userBlock.classList.add('message-user-block');
+
+    if (showUserInfo) {
+      const img = document.createElement('img');
+      img.src = msg.pfp || 'default_avatar.jpg';
+      img.alt = 'Profile';
+      img.classList.add('profile-pic');
+      userBlock.appendChild(img);
+    } else {
+      const spacer = document.createElement('div');
+      spacer.style.width = '32px';
+      userBlock.appendChild(spacer);
+    }
+
+    const contentBlock = document.createElement('div');
+    contentBlock.classList.add('message-content');
+
+    if (showUserInfo) {
+      const usernameRow = document.createElement('div');
+      usernameRow.classList.add('username-row');
+
+      const userLabel = document.createElement('div');
+      userLabel.classList.add('message-username');
+      userLabel.textContent = msg.username || 'Anonymous';
+      userLabel.style.color = msg.color || '#ffffff';
+
+      usernameRow.appendChild(userLabel);
+
+      if (msg.timestamp) {
+        const date = new Date(Number(msg.timestamp));
+        const timeString = isNaN(date) ? 'Unknown time' : date.toLocaleString();
+        const tsDiv = document.createElement('div');
+        tsDiv.classList.add('message-timestamp-inline');
+        tsDiv.textContent = timeString;
+        usernameRow.appendChild(tsDiv);
+      }
+      contentBlock.appendChild(usernameRow);
+    }
+
+    const textSpan = document.createElement('div');
+    textSpan.classList.add('message-text');
+    textSpan.textContent = msg.text || '';
+    contentBlock.appendChild(textSpan);
+
+    userBlock.appendChild(contentBlock);
+    div.appendChild(userBlock);
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  const addChannelBtn = document.getElementById('add-channel-button');
+
+  addChannelBtn.addEventListener('click', () => {
+    const name = prompt("Enter new channel name (no spaces):");
+    if (!name || name.includes(' ')) {
+      alert("Invalid channel name.");
+      return;
+    }
+    createChannel(name, server);
+  });
+</script>
+
 
   <script src="app.js"></script>
 </body>
