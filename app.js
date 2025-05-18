@@ -8,7 +8,7 @@ const colorInput = document.getElementById('color-input');
 const saveSettingsBtn = document.getElementById('save-settings-button');
 const pendingMessages = {};
 
-const channelEls = document.querySelectorAll('.channel');
+let channelEls = document.querySelectorAll('.channel');
 
 const savedName = sessionStorage.getItem('chat_username') || 'Anonymous';
 const savedColor = sessionStorage.getItem('chat_color') || '#ffffff';
@@ -18,7 +18,6 @@ localStorage.setItem('chat_color', savedColor);
 
 let lastUsername = null;
 let evt = null;
-let currentChannel = 'general'; // default channel
 
 function openSettings() {
   const savedName = sessionStorage.getItem('chat_username') || 'Anonymous';
@@ -187,7 +186,7 @@ function sendMessage() {
   const tempId = Date.now().toString() + Math.random();
   const profilePic = sessionStorage.getItem('chat_profile_pic') || '';
   console.log(currentChannel)
-  const userMessage = { text, username, color, tempId, pfp: profilePic, channel: currentChannel, server: "gaming" };
+  const userMessage = { text, username, color, tempId, pfp: profilePic, channel: currentChannel, server: server };
 
 
   createMessageElement(userMessage, true);
@@ -246,7 +245,9 @@ function subToChannel(channel) {
   container.innerHTML = '';
   lastUsername = null;
   if (evt) evt.close();
-  evt = new EventSource(`https://interconnect-backend-roxy.onrender.com/events?channel=${encodeURIComponent(channel)}`);
+
+  evt = new EventSource(`https://interconnect-backend-roxy.onrender.com/events?channel=${encodeURIComponent(channel)}&server=${encodeURIComponent(server)}`);
+
   evt.onmessage = event => {
     const msg = JSON.parse(event.data);
 
@@ -306,20 +307,24 @@ function subToChannel(channel) {
       return;
     }
 
-    if (msg.tempId && pendingMessages[msg.tempId]) {
-      const el = pendingMessages[msg.tempId];
-      el.classList.remove('pending');
-      el.dataset.timestamp = msg.timestamp;
-      delete pendingMessages[msg.tempId];
-    } else if (msg.channel === currentChannel)  {
-      createMessageElement(msg);
+    // Only render messages matching both channel and server
+    if (msg.channel === currentChannel && msg.server === server) {
+      if (msg.tempId && pendingMessages[msg.tempId]) {
+        const el = pendingMessages[msg.tempId];
+        el.classList.remove('pending');
+        el.dataset.timestamp = msg.timestamp;
+        delete pendingMessages[msg.tempId];
+      } else {
+        createMessageElement(msg);
+      }
     }
   };
-
 }
+
 
 // UI: Highlight the selected channel
 function highlightActiveChannel(channel) {
+  channelEls = document.querySelectorAll('.channel');
   const cleanChannel = channel.replace(/^#?\s*/, '').trim();
 
   channelEls.forEach(el => {
